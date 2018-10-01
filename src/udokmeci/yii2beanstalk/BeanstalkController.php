@@ -136,11 +136,13 @@ class BeanstalkController extends Controller
      */
     public function mysqlSessionTimeout()
     {
-        try {
-            $command = $this->getDb()->createCommand('SET @@session.wait_timeout = 31536000');
-            $command->execute();
-        } catch (\Exception $e) {
-            Yii::error(Yii::t('udokmeci.beanstalkd', "Mysql session.wait_timeout command did not succeeded."));
+        if (in_array($this->getDb()->getDriverName(), ['mysqli', 'mysql'])) {
+            try {
+                $command = $this->getDb()->createCommand('SET @@session.wait_timeout = 31536000');
+                $command->execute();
+            } catch (\Exception $e) {
+                Yii::error(Yii::t('udokmeci.beanstalkd', "Mysql session.wait_timeout command did not succeeded."));
+            }
         }
     }
 
@@ -319,7 +321,7 @@ class BeanstalkController extends Controller
                             if (!$job) {
                                 if ($this->beanstalk->sleep) {
                                     usleep($this->beanstalk->sleep);
-                                }                                
+                                }
                                 continue;
                             }
 
