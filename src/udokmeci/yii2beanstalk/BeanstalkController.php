@@ -4,7 +4,6 @@ namespace udokmeci\yii2beanstalk;
 use Pheanstalk\Exception\ConnectionException;
 use Pheanstalk\Exception\ServerException;
 use Yii;
-use yii\base\Event;
 use yii\base\InvalidConfigException;
 use yii\console\Controller;
 use yii\helpers\Console;
@@ -334,7 +333,7 @@ class BeanstalkController extends Controller
                                 break;
                             }
                             $this->_inProgress = true;
-                            $this->trigger(self::EVENT_BEFORE_JOB, new Event);
+                            $this->trigger(self::EVENT_BEFORE_JOB, new BeanstalkEvent(['job' => $job]));
                             $this->executeJob($methodName, $job);
                         } catch (Yii\db\Exception $e) {
                             if (isset($job)) {
@@ -347,14 +346,14 @@ class BeanstalkController extends Controller
                             $this->stderr($e->getMessage() . "\n", Console::FG_RED);
                         }
                         $this->_inProgress = false;
-                        $this->trigger(self::EVENT_AFTER_JOB, new Event);
+                        $this->trigger(self::EVENT_AFTER_JOB, new BeanstalkEvent(['job' => $job]));
                         if ($this->beanstalk->sleep) {
                             usleep($this->beanstalk->sleep);
                         }
                     }
                 }
             } catch (ServerException $e) {
-                $this->trigger(self::EVENT_AFTER_JOB, new Event);
+                $this->trigger(self::EVENT_AFTER_JOB, new BeanstalkEvent());
                 $this->stderr($e . "\n", Console::FG_RED);
             }
 
